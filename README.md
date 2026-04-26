@@ -1,8 +1,10 @@
 # qyra
 
+[![CI](https://github.com/qyrahub/qyra/actions/workflows/ci.yml/badge.svg)](https://github.com/qyrahub/qyra/actions/workflows/ci.yml)
+
 [![PyPI](https://img.shields.io/pypi/v/qyra.svg)](https://pypi.org/project/qyra/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
 Production infrastructure for HyperCycle AIMs.
 
