@@ -18,6 +18,8 @@ Variable                          Purpose
                                   Default: empty.
 ``QYRA_AIM_VERSION``              Optional version string reported in events.
                                   Default: empty.
+``QYRA_AIM_OWNER``                Author identifier for AIMs (Week 4 auth).
+                                  Default: empty.
 ``QYRA_DISABLED``                 ``1``/``true`` to disable all telemetry.
                                   Default: ``0``.
 ``QYRA_TIMEOUT``                  Telemetry HTTP timeout in seconds.
@@ -77,6 +79,7 @@ class Config:
     api_key: str = field(default_factory=lambda: os.getenv("QYRA_API_KEY", ""))
     aim_name: str = field(default_factory=lambda: os.getenv("QYRA_AIM_NAME", ""))
     aim_version: str = field(default_factory=lambda: os.getenv("QYRA_AIM_VERSION", ""))
+    aim_owner: str = field(default_factory=lambda: os.getenv("QYRA_AIM_OWNER", ""))
     disabled: bool = field(default_factory=lambda: _env_bool("QYRA_DISABLED", False))
     telemetry_timeout: float = field(default_factory=lambda: _env_float("QYRA_TIMEOUT", 2.0))
     max_retries: int = field(default_factory=lambda: _env_int("QYRA_MAX_RETRIES", 2))

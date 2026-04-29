@@ -1,4 +1,4 @@
-"""Smoke tests for qyra v0.1.0 — fast, no network, no real services."""
+"""Smoke tests for qyra v0.1.1 — fast, no network, no real services."""
 from __future__ import annotations
 
 import asyncio
@@ -13,7 +13,7 @@ def test_imports_and_version():
     """Package imports cleanly and exposes a version string."""
     import qyra
 
-    assert qyra.__version__ == "0.1.0"
+    assert qyra.__version__ == "0.1.1"
     assert callable(qyra.track)
     assert callable(qyra.atrack)
     assert callable(qyra.instrument)

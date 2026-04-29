@@ -81,11 +81,13 @@ def track(
     *,
     aim_name: Optional[str] = None,
     aim_version: Optional[str] = None,
-    user_id: Optional[int] = None,
+    aim_owner: Optional[str] = None,
+    user_id: Any = None,
     success: bool = True,
     error: Optional[str] = None,
     latency_ms: Optional[int] = None,
     extra: Optional[Mapping[str, Any]] = None,
+    hypercycle_metadata: Optional[Mapping[str, Any]] = None,
     config: Optional[Config] = None,
 ) -> None:
     """Report a single event from synchronous code.
@@ -136,7 +138,9 @@ def track(
         response=response,
         user_id=user_id,
         aim_version=aim_version or cfg.aim_version,
+        aim_owner=aim_owner or cfg.aim_owner,
         latency_ms=latency_ms,
+        hypercycle_metadata=hypercycle_metadata,
     )
     track_event(event, config=cfg)
 
@@ -147,11 +151,13 @@ async def atrack(
     *,
     aim_name: Optional[str] = None,
     aim_version: Optional[str] = None,
-    user_id: Optional[int] = None,
+    aim_owner: Optional[str] = None,
+    user_id: Any = None,
     success: bool = True,
     error: Optional[str] = None,
     latency_ms: Optional[int] = None,
     extra: Optional[Mapping[str, Any]] = None,
+    hypercycle_metadata: Optional[Mapping[str, Any]] = None,
     config: Optional[Config] = None,
 ) -> None:
     """Async counterpart of :func:`track`.
@@ -172,7 +178,9 @@ async def atrack(
         response=response,
         user_id=user_id,
         aim_version=aim_version or cfg.aim_version,
+        aim_owner=aim_owner or cfg.aim_owner,
         latency_ms=latency_ms,
+        hypercycle_metadata=hypercycle_metadata,
     )
 
     async def _runner() -> None:
