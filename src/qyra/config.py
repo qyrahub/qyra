@@ -10,7 +10,7 @@ Recognised environment variables:
 Variable                          Purpose
 ================================  ==============================================
 ``QYRA_TELEMETRY_URL``            Telemetry ingestion endpoint.
-                                  Default: ``http://127.0.0.1:8098/track``
+                                  Default: ``https://api.qyratech.com/hypercycle/track``
 ``QYRA_API_KEY``                  API key sent with telemetry events.
                                   Default: empty (anonymous reporting allowed
                                   for self-hosted endpoints).
@@ -74,7 +74,7 @@ class Config:
     """
 
     telemetry_url: str = field(
-        default_factory=lambda: os.getenv("QYRA_TELEMETRY_URL", "http://127.0.0.1:8098/track")
+        default_factory=lambda: os.getenv("QYRA_TELEMETRY_URL", "https://api.qyratech.com/hypercycle/track")
     )
     api_key: str = field(default_factory=lambda: os.getenv("QYRA_API_KEY", ""))
     aim_name: str = field(default_factory=lambda: os.getenv("QYRA_AIM_NAME", ""))

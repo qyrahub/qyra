@@ -13,7 +13,7 @@ def test_imports_and_version():
     """Package imports cleanly and exposes a version string."""
     import qyra
 
-    assert qyra.__version__ == "0.1.1"
+    assert qyra.__version__ == "0.1.2"
     assert callable(qyra.track)
     assert callable(qyra.atrack)
     assert callable(qyra.instrument)
