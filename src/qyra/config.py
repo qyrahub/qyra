@@ -30,11 +30,11 @@ Variable                          Purpose
                                   Default: ``30.0``.
 ================================  ==============================================
 """
+
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 def _env_bool(name: str, default: bool = False) -> bool:
@@ -74,7 +74,9 @@ class Config:
     """
 
     telemetry_url: str = field(
-        default_factory=lambda: os.getenv("QYRA_TELEMETRY_URL", "https://api.qyratech.com/hypercycle/track")
+        default_factory=lambda: os.getenv(
+            "QYRA_TELEMETRY_URL", "https://api.qyratech.com/hypercycle/track"
+        )
     )
     api_key: str = field(default_factory=lambda: os.getenv("QYRA_API_KEY", ""))
     aim_name: str = field(default_factory=lambda: os.getenv("QYRA_AIM_NAME", ""))
@@ -83,9 +85,7 @@ class Config:
     disabled: bool = field(default_factory=lambda: _env_bool("QYRA_DISABLED", False))
     telemetry_timeout: float = field(default_factory=lambda: _env_float("QYRA_TIMEOUT", 2.0))
     max_retries: int = field(default_factory=lambda: _env_int("QYRA_MAX_RETRIES", 2))
-    client_timeout: float = field(
-        default_factory=lambda: _env_float("QYRA_CLIENT_TIMEOUT", 30.0)
-    )
+    client_timeout: float = field(default_factory=lambda: _env_float("QYRA_CLIENT_TIMEOUT", 30.0))
 
     def headers(self) -> dict:
         """HTTP headers attached to telemetry POSTs."""
@@ -98,7 +98,7 @@ class Config:
         return not self.disabled and bool(self.telemetry_url)
 
 
-_cached_config: Optional[Config] = None
+_cached_config: Config | None = None
 
 
 def get_config(refresh: bool = False) -> Config:

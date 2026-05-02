@@ -13,23 +13,25 @@ The decorator records latency, success/failure, and exception class for every
 call, then fires telemetry asynchronously. Both sync and async functions are
 supported; the right reporting path is chosen automatically.
 """
+
 from __future__ import annotations
 
 import asyncio
 import functools
 import time
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
-from .config import Config, get_config
+from .config import Config
 from .telemetry import atrack, track
 
 
 def instrument(
-    operation: Optional[str] = None,
+    operation: str | None = None,
     *,
-    aim_name: Optional[str] = None,
-    aim_version: Optional[str] = None,
-    config: Optional[Config] = None,
+    aim_name: str | None = None,
+    aim_version: str | None = None,
+    config: Config | None = None,
 ) -> Callable:
     """Wrap a function so each call emits a telemetry event.
 

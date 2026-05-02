@@ -16,11 +16,13 @@ Example::
         async with AsyncClient("aim-web-research", base_url="http://127.0.0.1:8087") as c:
             return await c.post("/research", json={"query": "HyperCycle"})
 """
+
 from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any
 
 import httpx
 
@@ -55,11 +57,11 @@ class _ClientBase:
         self,
         aim_name: str,
         *,
-        base_url: Optional[str] = None,
-        timeout: Optional[float] = None,
-        max_retries: Optional[int] = None,
-        headers: Optional[Mapping[str, str]] = None,
-        config: Optional[Config] = None,
+        base_url: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: Mapping[str, str] | None = None,
+        config: Config | None = None,
     ):
         cfg = config or get_config()
         self.aim_name = aim_name
@@ -75,7 +77,7 @@ class _ClientBase:
 class Client(_ClientBase):
     """Synchronous HTTP client with retries and telemetry."""
 
-    def __enter__(self) -> "Client":
+    def __enter__(self) -> Client:
         self._http = httpx.Client(
             base_url=self.base_url or "",
             timeout=self.timeout,
@@ -86,7 +88,9 @@ class Client(_ClientBase):
     def __exit__(self, exc_type, exc, tb) -> None:
         self._http.close()
 
-    def request(self, method: str, url: str, *, operation: Optional[str] = None, **kwargs: Any) -> httpx.Response:
+    def request(
+        self, method: str, url: str, *, operation: str | None = None, **kwargs: Any
+    ) -> httpx.Response:
         op = operation or f"{method.lower()}:{url.rsplit('/', 1)[-1] or 'root'}"
         # Ensure we have an httpx.Client even if the user didn't use the context manager.
         owns_http = not hasattr(self, "_http")
@@ -146,7 +150,7 @@ class Client(_ClientBase):
 class AsyncClient(_ClientBase):
     """Async HTTP client with retries and telemetry."""
 
-    async def __aenter__(self) -> "AsyncClient":
+    async def __aenter__(self) -> AsyncClient:
         self._http = httpx.AsyncClient(
             base_url=self.base_url or "",
             timeout=self.timeout,
@@ -158,7 +162,7 @@ class AsyncClient(_ClientBase):
         await self._http.aclose()
 
     async def request(
-        self, method: str, url: str, *, operation: Optional[str] = None, **kwargs: Any
+        self, method: str, url: str, *, operation: str | None = None, **kwargs: Any
     ) -> httpx.Response:
         op = operation or f"{method.lower()}:{url.rsplit('/', 1)[-1] or 'root'}"
         owns_http = not hasattr(self, "_http")

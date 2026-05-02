@@ -1,4 +1,5 @@
 """Smoke tests for qyra v0.1.1 — fast, no network, no real services."""
+
 from __future__ import annotations
 
 import asyncio
@@ -13,7 +14,7 @@ def test_imports_and_version():
     """Package imports cleanly and exposes a version string."""
     import qyra
 
-    assert qyra.__version__ == "0.1.2"
+    assert qyra.__version__ == "0.1.3"
     assert callable(qyra.track)
     assert callable(qyra.atrack)
     assert callable(qyra.instrument)
@@ -24,9 +25,11 @@ def test_imports_and_version():
 
 
 def test_config_reads_environment():
-    from qyra.config import Config, get_config
+    from qyra.config import get_config
 
-    with patch.dict(os.environ, {"QYRA_TELEMETRY_URL": "http://example.com/track", "QYRA_API_KEY": "abc123"}):
+    with patch.dict(
+        os.environ, {"QYRA_TELEMETRY_URL": "http://example.com/track", "QYRA_API_KEY": "abc123"}
+    ):
         cfg = get_config(refresh=True)
         assert cfg.telemetry_url == "http://example.com/track"
         assert cfg.api_key == "abc123"
@@ -46,7 +49,9 @@ def test_track_is_nonblocking():
     from qyra import track
 
     # Point at a non-routable IP — telemetry should not block the caller.
-    with patch.dict(os.environ, {"QYRA_TELEMETRY_URL": "http://10.255.255.1:8098/track", "QYRA_TIMEOUT": "5"}):
+    with patch.dict(
+        os.environ, {"QYRA_TELEMETRY_URL": "http://10.255.255.1:8098/track", "QYRA_TIMEOUT": "5"}
+    ):
         from qyra.config import get_config
 
         cfg = get_config(refresh=True)

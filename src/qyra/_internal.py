@@ -2,14 +2,17 @@
 
 Anything in this module can change without notice between minor versions.
 """
+
 from __future__ import annotations
 
 import json as _json
 import logging
 import re as _re
 import uuid as _uuid
-from datetime import datetime as _dt, timezone as _tz
-from typing import Any, Mapping, Optional
+from collections.abc import Mapping
+from datetime import datetime as _dt
+from datetime import timezone as _tz
+from typing import Any
 from urllib import error as _urlerr
 from urllib import request as _urlreq
 
@@ -18,7 +21,7 @@ logger = logging.getLogger("qyra")
 _QYRA_DEBUG_ENV = "QYRA_DEBUG"
 
 
-def _truthy(value: Optional[str]) -> bool:
+def _truthy(value: str | None) -> bool:
     return bool(value) and value.strip().lower() in ("1", "true", "yes", "on")
 
 
@@ -46,13 +49,16 @@ _ERROR_PATTERNS = (
     (_re.compile(r"\b(timeout|timed out|deadline exceeded)\b", _re.I), "timeout"),
     (_re.compile(r"\b(rate.?limit|429|too many requests|quota)\b", _re.I), "rate_limit"),
     (_re.compile(r"\b(401|403|unauthor|forbid|api.?key|authentication)\b", _re.I), "auth"),
-    (_re.compile(r"\b(5\d\d|server error|service unavailable|bad gateway)\b", _re.I), "model_error"),
+    (
+        _re.compile(r"\b(5\d\d|server error|service unavailable|bad gateway)\b", _re.I),
+        "model_error",
+    ),
     (_re.compile(r"\b(connection|network|dns|unreachable|reset by peer)\b", _re.I), "network"),
     (_re.compile(r"\b(4\d\d|invalid|malformed|bad request)\b", _re.I), "client_error"),
 )
 
 
-def classify_error(error: Optional[str]) -> Optional[str]:
+def classify_error(error: str | None) -> str | None:
     """Classify a free-form error string into a coarse category.
 
     Returns one of: "timeout", "rate_limit", "auth", "model_error",
@@ -67,23 +73,35 @@ def classify_error(error: Optional[str]) -> Optional[str]:
     return "unknown"
 
 
-# Provider detection from model name.
+# Provider detection from model name. Order matters — more specific patterns
+# must come before catch-all ones (e.g. anthropic before generic local).
 _PROVIDER_PATTERNS = (
     (_re.compile(r"^claude", _re.I), "anthropic"),
-    (_re.compile(r"^(gpt|o\d|chatgpt|text-davinci)", _re.I), "openai"),
-    (_re.compile(r"^(gemini|palm|bison)", _re.I), "google"),
-    (_re.compile(r"^(llama|mistral|qwen|phi|gemma)", _re.I), "local"),
+    # OpenAI: gpt-*, o1/o3/o4, chatgpt, text-davinci, text-embedding-*, dall-e, whisper, tts-*
+    (
+        _re.compile(r"^(gpt|o\d|chatgpt|text-davinci|text-embedding|dall-e|whisper|tts-)", _re.I),
+        "openai",
+    ),
+    (_re.compile(r"^(gemini|palm|bison|embedding-gecko|text-bison)", _re.I), "google"),
+    (
+        _re.compile(r"^(llama|mistral|qwen|phi|gemma|mixtral|codellama)", _re.I),
+        "local",
+    ),
     (_re.compile(r"^ollama", _re.I), "local"),
-    (_re.compile(r"^command", _re.I), "cohere"),
+    (_re.compile(r"^(command|cohere)", _re.I), "cohere"),
     (_re.compile(r"^deepseek", _re.I), "deepseek"),
 )
 
 
-def derive_model_provider(model: Optional[str]) -> Optional[str]:
+def derive_model_provider(model: str | None) -> str | None:
     """Infer provider name from model identifier string.
 
     Returns provider name (lower-case) or "other" for unrecognized models,
     or None for empty input.
+
+    v0.1.3: extended patterns include OpenAI embeddings/dall-e/whisper/tts,
+    Google embedding-gecko, and additional local-model families
+    (mixtral, codellama).
     """
     if not model:
         return None
@@ -91,6 +109,12 @@ def derive_model_provider(model: Optional[str]) -> Optional[str]:
     for pattern, label in _PROVIDER_PATTERNS:
         if pattern.search(text):
             return label
+    # v0.1.3: Ollama-style "name:tag" without an explicit ollama/ prefix
+    # (e.g. "gemma2:2b", "qwen2.5:3b", "llama3.2:3b") strongly suggests a
+    # local model. We only apply this fallback when nothing else matched
+    # to avoid clobbering deliberate provider tagging.
+    if ":" in text and not text.startswith("http"):
+        return "local"
     return "other"
 
 
@@ -141,12 +165,13 @@ def safe_extract_usage(response: Any) -> dict:
     return out
 
 
-def _hash_user_id(user_id: Any) -> Optional[str]:
+def _hash_user_id(user_id: Any) -> str | None:
     """Hash a user identifier with SHA256. Never sends raw IDs over the wire."""
     if user_id is None:
         return None
     try:
         import hashlib
+
         return hashlib.sha256(str(user_id).encode("utf-8")).hexdigest()
     except Exception:
         return None
@@ -157,14 +182,15 @@ def build_event(
     aim_name: str,
     operation: str,
     success: bool = True,
-    error: Optional[str] = None,
-    extra: Optional[Mapping[str, Any]] = None,
+    error: str | None = None,
+    extra: Mapping[str, Any] | None = None,
     response: Any = None,
     user_id: Any = None,
     aim_version: str = "",
     aim_owner: str = "",
-    latency_ms: Optional[int] = None,
-    hypercycle_metadata: Optional[Mapping[str, Any]] = None,
+    latency_ms: int | None = None,
+    hypercycle_metadata: Mapping[str, Any] | None = None,
+    model: str | None = None,
 ) -> dict:
     """Build a telemetry event dict ready to be JSON-encoded.
 
@@ -178,6 +204,12 @@ def build_event(
         cache_write_tokens — Anthropic prompt-cache writes
         user_id_hash       — SHA256 of user_id (raw never leaves the client)
         hypercycle_metadata — free-form JSON for HyperCycle-specific fields
+
+    v0.1.3 additions:
+        model              — explicit kwarg to set the model (and thus
+                             auto-derive model_provider) when no response
+                             object is available. ``response.model`` still
+                             takes precedence if both are supplied.
     """
     payload: dict = {
         "event_id": new_event_id(),
@@ -203,10 +235,18 @@ def build_event(
         except (TypeError, ValueError):
             pass
 
+    # Response-derived fields take precedence over the explicit `model` kwarg
+    # because the response is closer to ground truth (it's what the model
+    # actually billed against). The kwarg fills the gap when no response
+    # object is provided.
     usage = safe_extract_usage(response)
     payload.update(usage)
-    if "model" in usage:
-        provider = derive_model_provider(usage["model"])
+    if "model" not in payload and model:
+        payload["model"] = str(model)
+
+    # Derive provider from whichever model field landed on the payload.
+    if "model" in payload:
+        provider = derive_model_provider(payload["model"])
         if provider:
             payload["model_provider"] = provider
 
@@ -219,10 +259,19 @@ def build_event(
         # so users can correct a misdetected field.
         for k, v in extra.items():
             payload[k] = v
+        # If extra supplied a model and we don't have a provider yet
+        # (or extra overrode the model), redo provider derivation so the
+        # two fields stay consistent.
+        if "model" in extra:
+            provider = derive_model_provider(payload.get("model"))
+            if provider:
+                payload["model_provider"] = provider
     return payload
 
 
-def post_urllib(url: str, headers: Mapping[str, str], payload: Mapping[str, Any], timeout: float) -> bool:
+def post_urllib(
+    url: str, headers: Mapping[str, str], payload: Mapping[str, Any], timeout: float
+) -> bool:
     """POST a JSON payload using the standard library only.
 
     Returns True on 2xx, False otherwise. Never raises.

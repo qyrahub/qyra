@@ -17,27 +17,40 @@ Quickstart:
         # ... your logic ...
         return {"ok": True}
 
+For ad-hoc LLM call instrumentation without a decorator, use the
+:func:`track_call` / :func:`atrack_call` context managers — they
+auto-measure latency and emit a single event covering the call::
+
+    from qyra import track_call
+
+    with track_call("ask", aim_name="my-aim") as ctx:
+        resp = claude.messages.create(...)
+        ctx.set_response(resp)
+
 Configuration is environment-driven; no hardcoding required.
 See :mod:`qyra.config` for the full list of variables.
 """
+
 from __future__ import annotations
 
 from .client import AsyncClient, Client
 from .config import Config, get_config
 from .health import attach_health_endpoints
 from .instrument import instrument
-from .telemetry import atrack, track, track_event
+from .telemetry import atrack, atrack_call, track, track_call, track_event
 
 __all__ = [
     "AsyncClient",
     "Client",
     "Config",
     "atrack",
+    "atrack_call",
     "attach_health_endpoints",
     "get_config",
     "instrument",
     "track",
+    "track_call",
     "track_event",
 ]
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"

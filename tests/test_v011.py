@@ -1,11 +1,10 @@
 """Tests for qyra v0.1.1 additions: schema extensions for the corpus."""
+
 from __future__ import annotations
 
 import os
 import re
 from unittest.mock import patch
-
-import pytest
 
 
 def test_event_id_is_uuid_and_unique():
@@ -121,6 +120,7 @@ def test_user_id_never_appears_raw():
 
     # Raw value must not appear ANYWHERE in the event
     import json
+
     serialized = json.dumps(e)
     assert raw_pii not in serialized
 

@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.3] - 2026-05-02
+
+### Added
+- `track_call()` context manager: auto-measures latency of a code block
+  and emits a single telemetry event covering the call. Closes the
+  ergonomic gap where bare `track()` calls shipped without `latency_ms`.
+  ```python
+  from qyra import track_call
+
+  with track_call("ask", aim_name="my-aim") as ctx:
+      resp = claude.messages.create(...)
+      ctx.set_response(resp)
+  ```
+- `atrack_call()`: async counterpart of `track_call`, for use inside
+  `async def` request handlers.
+- `model` keyword argument on `track()` and `atrack()`. Lets callers
+  specify the model identifier explicitly when no full response object
+  is available, so `model_provider` is still auto-derived. The response
+  object's `model` field still takes precedence when both are supplied.
+
+### Changed
+- Provider auto-detection patterns expanded:
+  - OpenAI now matches `text-embedding-*`, `dall-e-*`, `whisper-*`, `tts-*`
+    in addition to the existing `gpt-*` / `o\d` patterns.
+  - Google now matches `embedding-gecko` and `text-bison`.
+  - Local models now match `mixtral`, `codellama`.
+  - New fallback: any model identifier containing `:` (Ollama-style
+    `name:tag`) is treated as `local` when no other pattern matches.
+  This fixes silent `null` `model_provider` fields for events emitted
+  from local Ollama installs and OpenAI's non-chat models.
+- `build_event()` now derives `model_provider` from any source of model
+  information in priority order: `response.model` → `model` kwarg →
+  `extra['model']`. Previously only `response.model` triggered derivation.
+
+### Notes
+- All changes are additive — v0.1.2 callers continue to work unchanged.
+- No new dependencies.
+
 ## [0.1.2] - 2026-05-01
 
 ### Changed

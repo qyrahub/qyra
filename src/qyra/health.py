@@ -10,14 +10,16 @@ add three endpoints to your application:
 FastAPI is an optional dependency. Importing this module will not import FastAPI
 unless :func:`attach_health_endpoints` is actually called.
 """
+
 from __future__ import annotations
 
 import os
 import platform
 import time
-from typing import Any, Awaitable, Callable, Optional, Union
+from collections.abc import Awaitable, Callable
+from typing import Any
 
-ReadinessCheck = Callable[[], Union[bool, Awaitable[bool]]]
+ReadinessCheck = Callable[[], bool | Awaitable[bool]]
 
 
 def _now_iso() -> str:
@@ -31,7 +33,7 @@ def attach_health_endpoints(
     *,
     aim_name: str,
     aim_version: str = "",
-    readiness: Optional[ReadinessCheck] = None,
+    readiness: ReadinessCheck | None = None,
 ) -> None:
     """Mount ``/health``, ``/ready``, and ``/metrics`` on a FastAPI app.
 
@@ -71,7 +73,7 @@ def attach_health_endpoints(
     @app.get("/ready", tags=["qyra"])
     async def _qyra_ready() -> dict:
         ready = True
-        detail: Optional[str] = None
+        detail: str | None = None
         if readiness is not None:
             try:
                 result = readiness()

@@ -47,3 +47,6 @@ htmlcov/
 # Pre-release backups (local only)
 *.pre_v0_1_2_release_bak
 *.pre_v0_1_2_url_bak
+
+# Day-stamped backups created during dev
+*.bak.day*
