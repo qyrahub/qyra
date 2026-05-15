@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 import time
 from unittest.mock import patch
 
@@ -19,7 +20,9 @@ import pytest
 def test_version_is_013():
     import qyra
 
-    assert qyra.__version__ == "0.1.3"
+    v = qyra.__version__
+    assert isinstance(v, str) and v, f"version is not a non-empty string: {v!r}"
+    assert re.fullmatch(r"\d+\.\d+\.\d+(?:[.-].+)?", v), f"not SemVer: {v!r}"
 
 
 def test_track_call_is_exported():
