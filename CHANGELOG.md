@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-05-15
+### Fixed
+- Sync __version__ constant with package version. Prior releases bumped
+  pyproject.toml but left src/qyra/__init__.py:__version__ stale,
+  so callers importing qyra.__version__ saw an older string than the
+  installed distribution. Now __version__ is the source of truth.
+
 ## [0.1.4] - 2026-05-08
 
 ### Changed

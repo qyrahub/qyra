@@ -53,4 +53,4 @@ __all__ = [
     "track_event",
 ]
 
-__version__ = "0.1.3"
+__version__ = "0.1.5"
