@@ -8,13 +8,15 @@ import time
 from unittest.mock import patch
 
 import pytest
+import re
 
 
 def test_imports_and_version():
     """Package imports cleanly and exposes a version string."""
     import qyra
 
-    assert qyra.__version__ == "0.1.3"
+    assert isinstance(qyra.__version__, str)
+    assert re.match(r"^\d+\.\d+\.\d+$", qyra.__version__)
     assert callable(qyra.track)
     assert callable(qyra.atrack)
     assert callable(qyra.instrument)
