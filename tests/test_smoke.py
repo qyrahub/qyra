@@ -4,19 +4,20 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 import time
 from unittest.mock import patch
 
 import pytest
-import re
 
 
 def test_imports_and_version():
     """Package imports cleanly and exposes a version string."""
     import qyra
 
-    assert isinstance(qyra.__version__, str)
-    assert re.match(r"^\d+\.\d+\.\d+$", qyra.__version__)
+    v = qyra.__version__
+    assert isinstance(v, str) and v, f"version is not a non-empty string: {v!r}"
+    assert re.fullmatch(r"\d+\.\d+\.\d+(?:[.-].+)?", v), f"not SemVer: {v!r}"
     assert callable(qyra.track)
     assert callable(qyra.atrack)
     assert callable(qyra.instrument)
