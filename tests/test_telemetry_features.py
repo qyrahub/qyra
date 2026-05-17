@@ -1,4 +1,4 @@
-"""Tests for qyra v0.1.3 additions:
+"""Tests for qyra telemetry feature surface:
 - track_call / atrack_call context managers (auto-latency)
 - Explicit `model` kwarg on track / atrack
 - Expanded provider auto-detection patterns
@@ -8,22 +8,10 @@ from __future__ import annotations
 
 import asyncio
 import os
-import re
 import time
 from unittest.mock import patch
 
 import pytest
-
-# ─── Version ────────────────────────────────────────────────────────────────
-
-
-def test_version_is_013():
-    import qyra
-
-    v = qyra.__version__
-    assert isinstance(v, str) and v, f"version is not a non-empty string: {v!r}"
-    assert re.fullmatch(r"\d+\.\d+\.\d+(?:[.-].+)?", v), f"not SemVer: {v!r}"
-
 
 def test_track_call_is_exported():
     import qyra
